@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Step through a fictional webhook queue and inspect delivery retries, duplicate handling and attempt history.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Webhook Delivery Lab</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./app.css">
+  <script src="./theme.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell masthead">
+      <a class="brand" href="./"><img src="./favicon.svg" alt="" width="32" height="32">Webhook Delivery Lab</a>
+      <a href="https://portfolio.artemislab.co.uk/#projects">← All projects</a>
+    </div>
+  </header>
+  <main class="shell">
+    <div class="intro">
+      <div>
+        <h1>Webhook Delivery Lab</h1>
+        <p>Queue a fictional order event and step through delivery to a simulated receiver.</p>
+      </div>
+      <div class="clock">
+        <span>Simulation clock</span>
+        <strong id="clock">00:00</strong>
+      </div>
+    </div>
+    <noscript><p>Enable JavaScript to run the simulation.</p></noscript>
+    <section class="controls" aria-label="Simulation controls">
+      <div class="scenario">
+        <label for="scenario">Receiver behaviour</label>
+        <select id="scenario">
+          <option value="recover">Temporary outage</option>
+          <option value="success">Immediate success</option>
+          <option value="reject">Permanent rejection</option>
+          <option value="exhaust">Persistent outage</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button id="enqueue" class="primary" type="button">Queue event</button>
+        <button id="process" type="button" aria-disabled="true">Process next</button>
+        <button id="advance" type="button" aria-disabled="true">Advance to retry</button>
+      </div>
+    </section>
+    <p id="message" class="message" role="status">Choose a receiver behaviour and queue an event to begin.</p>
+    <div class="board">
+      <section class="panel" aria-labelledby="queue-heading">
+        <div class="panel-heading">
+          <h2 id="queue-heading">Delivery queue</h2>
+          <span id="summary" class="muted"></span>
+        </div>
+        <p id="empty" class="empty muted">Queued events will appear here.</p>
+        <ul class="deliveries" id="deliveries" aria-label="Events"></ul>
+      </section>
+      <section class="panel detail" aria-labelledby="detail-heading">
+        <div class="panel-heading">
+          <h2 id="detail-heading">Attempt history</h2>
+          <span id="detail-status" class="pill" hidden></span>
+        </div>
+        <p id="detail-message" class="muted">Select an event to see its attempts.</p>
+        <div id="detail" hidden>
+          <p id="event-name" class="event-name"></p>
+          <p id="event-scenario" class="muted"></p>
+          <ol id="attempts" class="attempts" aria-label="Delivery attempts"></ol>
+          <p id="attempt-empty" class="muted">No attempts yet.</p>
+          <button id="duplicate" type="button">Queue same event again</button>
+        </div>
+      </section>
+    </div>
+    <div class="footer">
+      <p>The simulation keeps up to 30 events per page session. Reloading clears the queue.</p>
+      <button id="reset" type="button" aria-disabled="true">Reset simulation</button>
+    </div>
+  </main>
+</body>
+</html>
