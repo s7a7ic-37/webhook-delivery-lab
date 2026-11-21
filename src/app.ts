@@ -1,7 +1,15 @@
-import { capacity, deliveryStatus, enqueue, nextDelivery, nextRetry, processNext, scenarios } from "./queue.js";
-import type { Delivery, Queue, Scenario } from "./queue.js";
+import { advanceToRetry, capacity, deliveryStatus, enqueue, nextDelivery, nextRetry, processNext, scenarios } from "./queue.js";
+import type { Delivery, Scenario } from "./queue.js";
+import { clearRun, loadRun, saveRun } from "./session.js";
+import type { Step } from "./session.js";
 
-const queue: Queue = { now: 0, deliveries: [] };
+let storage: Storage | undefined;
+try {
+  storage = window.sessionStorage;
+} catch {
+  // Some browser settings block access to session storage.
+}
+const { queue, steps, selectedId, status: loadStatus } = loadRun(storage);
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const scenario = find<HTMLSelectElement>("scenario");
 const deliveries = find<HTMLUListElement>("deliveries");
@@ -11,13 +19,26 @@ const queueButton = find<HTMLButtonElement>("enqueue");
 const processButton = find<HTMLButtonElement>("process");
 const advanceButton = find<HTMLButtonElement>("advance");
 const resetButton = find<HTMLButtonElement>("reset");
-let selected: Delivery | undefined;
+const storageNote = find("storage-note");
+let selected: Delivery | undefined = queue.deliveries.find(delivery => delivery.id === selectedId);
 
 const eventName = (id: number) => "evt_" + String(id).padStart(3, "0");
 const time = (seconds: number) => String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
 const setUnavailable = (button: HTMLButtonElement, value: boolean) => button.setAttribute("aria-disabled", String(value));
 const text = (id: string, content: string) => { find(id).textContent = content; };
 const responses = { 200: "Delivered", 400: "Bad request", 503: "Service unavailable" };
+
+function showStorageNote(note: string) {
+  storageNote.textContent = note;
+  storageNote.hidden = !note;
+}
+
+function remember(step?: Step) {
+  if (step) steps.push(step);
+  if (!selected) return;
+  const saved = saveRun(storage, steps, selected.id);
+  showStorageNote(saved ? "" : "This tab could not save the run. Reloading may lose recent changes.");
+}
 
 function renderDetails() {
   find("detail").hidden = !selected;
@@ -80,6 +101,7 @@ function render() {
       selected = delivery;
       deliveries.querySelector('[aria-pressed="true"]')?.setAttribute("aria-pressed", "false");
       button.setAttribute("aria-pressed", "true");
+      remember();
       renderDetails();
     });
     button.append(key, badge, note);
@@ -96,6 +118,7 @@ queueButton.addEventListener("click", () => {
   if (enqueue(queue, id, value as Scenario) === "queued") {
     selected = queue.deliveries.at(-1);
     message.textContent = eventName(id) + " queued. Process next to make the first attempt.";
+    remember(value as Scenario);
     render();
   } else {
     message.textContent = "The queue is full. Reset the simulation to add more events.";
@@ -111,14 +134,15 @@ processButton.addEventListener("click", () => {
     (attempt.retryAt === null
       ? (attempt.code === 200 ? "Delivery completed." : attempt.code === 400 ? "The receiver rejected this event." : "The retry limit was reached.")
       : "Next attempt is due at " + time(attempt.retryAt) + ".");
+  remember("process");
   render();
 });
 
 advanceButton.addEventListener("click", () => {
-  const retryAt = nextRetry(queue);
+  const retryAt = advanceToRetry(queue);
   if (retryAt === null) return;
-  queue.now = retryAt;
   message.textContent = "Clock advanced to " + time(retryAt) + ". Process next to run a ready attempt.";
+  remember("advance");
   render();
 });
 
@@ -132,9 +156,15 @@ resetButton.addEventListener("click", () => {
   if (queue.deliveries.length === 0) return;
   queue.now = 0;
   queue.deliveries.length = 0;
+  steps.length = 0;
   selected = undefined;
+  const cleared = clearRun(storage);
+  showStorageNote(cleared ? "" : "This tab could not clear browser storage. An older run may return after reload.");
   message.textContent = "Simulation reset. Queue an event to start again.";
   render();
 });
 
+if (loadStatus === "restored") message.textContent = "Run restored from this tab.";
+if (loadStatus === "discarded") message.textContent = "The saved run could not be restored. A new run is ready.";
+if (loadStatus === "unavailable") showStorageNote("This tab could not use browser storage. Reloading may lose recent changes.");
 render();

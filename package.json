@@ -6,7 +6,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "build": "tsc && node -e \"require('node:fs').cpSync('public', 'dist', { recursive: true })\"",
-    "test": "node --test tests/queue.test.mjs"
+    "test": "tsc && node --test tests/*.test.mjs"
   },
   "devDependencies": { "typescript": "7.0.2" }
 }

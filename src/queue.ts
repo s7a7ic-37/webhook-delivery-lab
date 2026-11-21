@@ -7,6 +7,7 @@ export const scenarios = {
 
 export const capacity = 30;
 const delays = [2, 4, 8];
+export const maxRunSteps = capacity * (1 + (delays.length + 1) + delays.length);
 
 export type Scenario = keyof typeof scenarios;
 type Code = 200 | 400 | 503;
@@ -65,6 +66,12 @@ export function nextRetry(queue: Queue) {
     if (dueAt !== null && dueAt > queue.now) soonest = Math.min(soonest, dueAt);
   }
   return Number.isFinite(soonest) ? soonest : null;
+}
+
+export function advanceToRetry(queue: Queue) {
+  const retryAt = nextRetry(queue);
+  if (retryAt !== null) queue.now = retryAt;
+  return retryAt;
 }
 
 export function deliveryStatus(delivery: Delivery, now: number) {

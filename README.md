@@ -8,7 +8,7 @@ A browser simulation of a webhook queue and a fixed fictional receiver. Queue an
 - A permanent rejection returns 400 and ends the delivery. A 200 completes it.
 - Requeuing an existing event ID leaves the existing delivery and its history intact.
 
-The TypeScript queue selects the oldest due delivery, using insertion order for ties. The display shows each attempt, its response code and its next retry time. A page session holds up to 30 synthetic events in memory. All receiver responses are local fixtures.
+The TypeScript queue selects the oldest due delivery, using insertion order for ties. The display shows each attempt, its response code and its next retry time. This tab keeps up to 30 events across reloads by replaying a bounded list of saved steps. Reset removes the saved run. The simulation also works when browser storage is unavailable. All receiver responses are local fixtures.
 
 ## Run locally
 

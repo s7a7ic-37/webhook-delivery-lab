@@ -65,6 +65,7 @@ select { display: block; width: 100%; color: var(--ink); background: var(--surfa
 .primary { color: var(--primary-ink); background: var(--primary); border-color: var(--primary); }
 .primary[aria-disabled="true"] { color: var(--primary-ink); }
 .message { padding-block: .75rem; color: var(--primary); font-weight: 650; min-height: 3rem; }
+.storage-note { color: var(--bad); margin: 0 0 .75rem; font-size: .91rem; }
 .board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: .9rem; }
 .panel-heading { display: flex; align-items: start; gap: .4rem 1rem; justify-content: space-between; flex-wrap: wrap; }
 h2 { font-size: 1.2rem; }
