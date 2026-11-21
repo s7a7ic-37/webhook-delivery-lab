@@ -48,9 +48,11 @@ function renderDetails() {
   if (!selected) return;
 
   const status = deliveryStatus(selected, queue.now);
+  const event = { id: eventName(selected.id), type: "order.ready" };
   badge.dataset.status = status;
   badge.textContent = status;
-  text("event-name", eventName(selected.id) + " · order.ready");
+  text("event-name", event.id + " · " + event.type);
+  text("event-json", JSON.stringify(event, null, 2));
   text("event-scenario", scenarios[selected.scenario].label);
   attempts.replaceChildren();
   find("attempt-empty").hidden = selected.attempts.length !== 0;
@@ -179,6 +181,7 @@ resetButton.addEventListener("click", () => {
   queue.deliveries.length = 0;
   steps.length = 0;
   selected = undefined;
+  find<HTMLDetailsElement>("event-message").open = false;
   const cleared = clearRun(storage);
   showStorageNote(cleared ? "" : "This tab could not clear browser storage. An older run may return after reload.");
   message.textContent = "Simulation reset. Queue an event to start again.";

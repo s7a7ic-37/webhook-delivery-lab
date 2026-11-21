@@ -68,6 +68,11 @@
           <p id="event-scenario" class="muted"></p>
           <ol id="attempts" class="attempts" aria-label="Delivery attempts"></ol>
           <p id="attempt-empty" class="muted">No attempts yet.</p>
+          <details id="event-message">
+            <summary>Simulated event JSON</summary>
+            <pre><code id="event-json"></code></pre>
+            <p class="muted">The queue uses the event ID as its deduplication key.</p>
+          </details>
           <button id="duplicate" type="button">Queue same event again</button>
         </div>
         <button id="export-attempts" type="button" aria-disabled="true">Export all attempts (CSV)</button>

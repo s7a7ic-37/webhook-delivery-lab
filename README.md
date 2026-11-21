@@ -6,7 +6,7 @@ A browser simulation of a webhook queue and a fixed fictional receiver. Queue an
 
 - Temporary failures return 503. Retries wait 2, 4 and 8 seconds, with up to four attempts.
 - A permanent rejection returns 400 and ends the delivery. A 200 completes it.
-- Requeuing an existing event ID leaves the existing delivery and its history intact.
+- Inspect each simulated event as JSON. Requeuing the same event ID leaves its delivery and history intact.
 - Export every processed attempt in the current run as CSV. Rows follow processing order, including attempts at the same simulation time. Times are in seconds from the start of the run, with blank retry times for final responses.
 
 The TypeScript queue selects the oldest due delivery, using insertion order for ties. The display shows each attempt, its response code and its next retry time. This tab keeps up to 30 events across reloads by replaying a bounded list of saved steps. Reset removes the saved run. The simulation also works when browser storage is unavailable. All receiver responses are local fixtures.
