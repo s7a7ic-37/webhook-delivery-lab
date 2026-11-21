@@ -110,6 +110,15 @@ function render() {
     deliveries.append(item);
   }
   renderDetails();
+
+  const selectedRow = deliveries.querySelector('[aria-pressed="true"]');
+  if (selectedRow) {
+    const list = deliveries.getBoundingClientRect();
+    const row = selectedRow.getBoundingClientRect();
+    const topOffset = row.top - list.top;
+    const bottomOffset = row.bottom - list.bottom;
+    deliveries.scrollTop += topOffset < 0 ? topOffset : Math.max(0, bottomOffset);
+  }
 }
 
 queueButton.addEventListener("click", () => {
