@@ -37,7 +37,7 @@ function remember(step?: Step) {
   if (step) steps.push(step);
   if (!selected) return;
   const saved = saveRun(storage, steps, selected.id);
-  showStorageNote(saved ? "" : "This tab could not save the run. Reloading may lose recent changes.");
+  showStorageNote(saved ? "" : "This tab could not save the run. Reloading may lose this run.");
 }
 
 function renderDetails() {
@@ -190,5 +190,5 @@ resetButton.addEventListener("click", () => {
 
 if (loadStatus === "restored") message.textContent = "Run restored from this tab.";
 if (loadStatus === "discarded") message.textContent = "The saved run could not be restored. A new run is ready.";
-if (loadStatus === "unavailable") showStorageNote("This tab could not use browser storage. Reloading may lose recent changes.");
+if (loadStatus === "unavailable") showStorageNote("This tab could not use browser storage. Reloading may lose this run.");
 render();
