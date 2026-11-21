@@ -2,6 +2,8 @@
 
 A browser simulation of a webhook queue and a fixed fictional receiver. Queue an event, process one delivery at a time, and advance the simulation clock to make each retry eligible.
 
+[Open the demo](https://webhooks.artemislab.co.uk/).
+
 - Temporary failures return 503. Retries wait 2, 4 and 8 seconds, with up to four attempts.
 - A permanent rejection returns 400 and ends the delivery. A 200 completes it.
 - Requeuing an existing event ID leaves the existing delivery and its history intact.

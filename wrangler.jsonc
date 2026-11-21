@@ -1,0 +1,9 @@
+{
+  "name": "webhook-delivery-lab",
+  "account_id": "671415c7ecfa0bd6ad7e3ae53b1fab88",
+  "compatibility_date": "2026-11-21",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "webhooks.artemislab.co.uk", "custom_domain": true }],
+  "assets": { "directory": "./dist" }
+}
