@@ -15,7 +15,7 @@ function decode(raw: string): Run | undefined {
     return;
   }
   if (!Array.isArray(saved?.steps) || saved.steps.length > maxRunSteps) return;
-  const queue: Queue = { now: 0, deliveries: [] };
+  const queue: Queue = { now: 0, attemptCount: 0, deliveries: [] };
   for (const step of saved.steps) {
     if (step === "process") {
       if (!processNext(queue)) return;
@@ -42,7 +42,7 @@ export function clearRun(storage?: SessionStore) {
 }
 
 export function loadRun(storage?: SessionStore) {
-  const empty: Run = { queue: { now: 0, deliveries: [] }, steps: [] };
+  const empty: Run = { queue: { now: 0, attemptCount: 0, deliveries: [] }, steps: [] };
   if (!storage) return { ...empty, status: "unavailable" };
   let raw;
   try {

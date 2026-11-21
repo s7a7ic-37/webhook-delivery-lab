@@ -87,7 +87,7 @@ h2 { font-size: 1.2rem; }
 .event-name { font-weight: 700; margin-top: .65rem; }
 .attempts li { padding: .5rem 0; border-block-start: 1px solid var(--border); }
 .attempts strong { display: block; font-size: .95rem; }
-#attempt-empty, #duplicate { margin-top: .65rem; }
+#attempt-empty, #duplicate, #export-attempts { margin-top: .65rem; }
 .footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: .5rem 1rem; padding-block: .95rem 2rem; }
 .footer p { color: var(--muted); font-size: .85rem; padding-block: .45rem; }
 .footer button { background: transparent; }
@@ -98,4 +98,5 @@ body > footer { padding-block: 0 1.5rem; }
   .board { grid-template-columns: minmax(0, 1fr); }
   .actions { width: 100%; }
   .actions button { flex: 1 1 auto; }
+  #export-attempts { width: 100%; }
 }

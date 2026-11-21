@@ -22,9 +22,16 @@ test("replay restores queue order, clock, selected event and attempt history", (
   assert.equal(saved.selectedId, 1);
   assert.deepEqual(saved.queue, {
     now: 2,
+    attemptCount: 3,
     deliveries: [
-      { id: 1, scenario: "recover", dueAt: 6, attempts: [{ at: 0, code: 503, retryAt: 2 }, { at: 2, code: 503, retryAt: 6 }] },
-      { id: 2, scenario: "success", dueAt: null, attempts: [{ at: 0, code: 200, retryAt: null }] },
+      {
+        id: 1, scenario: "recover", dueAt: 6,
+        attempts: [
+          { sequence: 1, at: 0, code: 503, retryAt: 2 },
+          { sequence: 3, at: 2, code: 503, retryAt: 6 },
+        ],
+      },
+      { id: 2, scenario: "success", dueAt: null, attempts: [{ sequence: 2, at: 0, code: 200, retryAt: null }] },
     ],
   });
 });

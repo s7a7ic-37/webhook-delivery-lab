@@ -13,6 +13,7 @@ export type Scenario = keyof typeof scenarios;
 type Code = 200 | 400 | 503;
 
 type Attempt = {
+  sequence: number;
   at: number;
   code: Code;
   retryAt: number | null;
@@ -27,8 +28,11 @@ export type Delivery = {
 
 export type Queue = {
   now: number;
+  attemptCount: number;
   deliveries: Delivery[];
 };
+
+export const eventName = (id: number) => "evt_" + String(id).padStart(3, "0");
 
 export function enqueue(queue: Queue, id: number, scenario: Scenario) {
   if (queue.deliveries.some((delivery) => delivery.id === id)) return "duplicate";
@@ -55,7 +59,7 @@ export function processNext(queue: Queue) {
   const retryAt = code === 503 && attemptIndex < delays.length
     ? queue.now + delays[attemptIndex]
     : null;
-  delivery.attempts.push({ at: queue.now, code, retryAt });
+  delivery.attempts.push({ sequence: ++queue.attemptCount, at: queue.now, code, retryAt });
   delivery.dueAt = retryAt;
   return delivery;
 }
@@ -77,4 +81,19 @@ export function advanceToRetry(queue: Queue) {
 export function deliveryStatus(delivery: Delivery, now: number) {
   if (delivery.dueAt !== null) return delivery.dueAt > now ? "Waiting" : "Ready";
   return delivery.attempts.at(-1)?.code === 200 ? "Delivered" : "Failed";
+}
+
+export function attemptsCsv(queue: Queue) {
+  const rows = queue.deliveries.flatMap(delivery => {
+    const event = eventName(delivery.id);
+    const scenario = '"' + scenarios[delivery.scenario].label.replaceAll('"', '""') + '"';
+    return delivery.attempts.map((attempt, index) => ({
+      sequence: attempt.sequence,
+      cells: [attempt.sequence, event, scenario, index + 1, attempt.code, attempt.at, attempt.retryAt ?? ""],
+    }));
+  }).sort((a, b) => a.sequence - b.sequence);
+  return [
+    "sequence,event,scenario,attempt,status_code,time_seconds,next_retry_seconds",
+    ...rows.map(row => row.cells.join(",")),
+  ].join("\r\n") + "\r\n";
 }

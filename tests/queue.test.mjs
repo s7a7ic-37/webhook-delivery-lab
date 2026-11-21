@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { capacity, deliveryStatus, enqueue, nextRetry, processNext } from "../src/queue.ts";
+import { attemptsCsv, capacity, deliveryStatus, enqueue, nextRetry, processNext } from "../src/queue.ts";
 
-const empty = () => ({ now: 0, deliveries: [] });
+const empty = () => ({ now: 0, attemptCount: 0, deliveries: [] });
 
 test("a temporary outage delays retries and succeeds on the third attempt", () => {
   const queue = empty();
@@ -19,9 +19,9 @@ test("a temporary outage delays retries and succeeds on the third attempt", () =
   queue.now = 6;
   processNext(queue);
   assert.deepEqual(delivery.attempts, [
-    { at: 0, code: 503, retryAt: 2 },
-    { at: 2, code: 503, retryAt: 6 },
-    { at: 6, code: 200, retryAt: null },
+    { sequence: 1, at: 0, code: 503, retryAt: 2 },
+    { sequence: 2, at: 2, code: 503, retryAt: 6 },
+    { sequence: 3, at: 6, code: 200, retryAt: null },
   ]);
   assert.equal(deliveryStatus(delivery, queue.now), "Delivered");
   assert.equal(nextRetry(queue), null);
@@ -45,7 +45,7 @@ test("a permanent rejection does not retry", () => {
   const queue = empty();
   enqueue(queue, 1, "reject");
   const delivery = processNext(queue);
-  assert.deepEqual(delivery.attempts, [{ at: 0, code: 400, retryAt: null }]);
+  assert.deepEqual(delivery.attempts, [{ sequence: 1, at: 0, code: 400, retryAt: null }]);
   assert.equal(deliveryStatus(delivery, queue.now), "Failed");
 });
 
@@ -69,6 +69,28 @@ test("ready work proceeds while a retry waits, in due-time then insertion order"
   queue.now = 2;
   assert.equal(processNext(queue).id, 3);
   assert.equal(processNext(queue).id, 1);
+});
+
+test("attempt export includes all processed events and keeps the actual order of same-time attempts", () => {
+  const queue = empty();
+  enqueue(queue, 1, "recover");
+  enqueue(queue, 2, "success");
+  enqueue(queue, 3, "reject");
+  processNext(queue);
+  processNext(queue);
+  queue.now = 2;
+  processNext(queue);
+  processNext(queue);
+  enqueue(queue, 4, "exhaust");
+
+  assert.equal(attemptsCsv(queue), [
+    "sequence,event,scenario,attempt,status_code,time_seconds,next_retry_seconds",
+    '1,evt_001,"Temporary outage",1,503,0,2',
+    '2,evt_002,"Immediate success",1,200,0,',
+    '3,evt_003,"Permanent rejection",1,400,2,',
+    '4,evt_001,"Temporary outage",2,503,2,6',
+    "",
+  ].join("\r\n"));
 });
 
 test("the session is bounded without losing the existing history", () => {

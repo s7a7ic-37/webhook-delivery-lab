@@ -1,4 +1,4 @@
-import { advanceToRetry, capacity, deliveryStatus, enqueue, nextDelivery, nextRetry, processNext, scenarios } from "./queue.js";
+import { advanceToRetry, attemptsCsv, capacity, deliveryStatus, enqueue, eventName, nextDelivery, nextRetry, processNext, scenarios } from "./queue.js";
 import type { Delivery, Scenario } from "./queue.js";
 import { clearRun, loadRun, saveRun } from "./session.js";
 import type { Step } from "./session.js";
@@ -18,11 +18,11 @@ const message = find("message");
 const queueButton = find<HTMLButtonElement>("enqueue");
 const processButton = find<HTMLButtonElement>("process");
 const advanceButton = find<HTMLButtonElement>("advance");
+const exportButton = find<HTMLButtonElement>("export-attempts");
 const resetButton = find<HTMLButtonElement>("reset");
 const storageNote = find("storage-note");
 let selected: Delivery | undefined = queue.deliveries.find(delivery => delivery.id === selectedId);
 
-const eventName = (id: number) => "evt_" + String(id).padStart(3, "0");
 const time = (seconds: number) => String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
 const setUnavailable = (button: HTMLButtonElement, value: boolean) => button.setAttribute("aria-disabled", String(value));
 const text = (id: string, content: string) => { find(id).textContent = content; };
@@ -72,6 +72,7 @@ function render() {
   setUnavailable(queueButton, queue.deliveries.length >= capacity);
   setUnavailable(processButton, !nextDelivery(queue));
   setUnavailable(advanceButton, retryAt === null);
+  setUnavailable(exportButton, queue.attemptCount === 0);
   setUnavailable(resetButton, queue.deliveries.length === 0);
   text("advance", retryAt === null ? "Advance to retry" : "Advance to " + time(retryAt));
   text("summary", queue.deliveries.length + " of " + capacity);
@@ -152,9 +153,20 @@ find("duplicate").addEventListener("click", () => {
   if (result === "duplicate") message.textContent = "Duplicate " + eventName(selected.id) + " ignored. The original delivery is unchanged.";
 });
 
+exportButton.addEventListener("click", () => {
+  if (queue.attemptCount === 0) return;
+  const url = URL.createObjectURL(new Blob([attemptsCsv(queue)], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "webhook-delivery-attempts.csv";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+});
+
 resetButton.addEventListener("click", () => {
   if (queue.deliveries.length === 0) return;
   queue.now = 0;
+  queue.attemptCount = 0;
   queue.deliveries.length = 0;
   steps.length = 0;
   selected = undefined;
